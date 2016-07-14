@@ -91,7 +91,7 @@
 
 	Log in with HangfireUser and HangfirePassword
 
-3 Add a Recurring Jobs
+3) Add a Recurring Jobs
 
 	Create a folder name Jobs
 
@@ -133,7 +133,7 @@
 
 	After the crashing gets scheduled a couple times, delete it
 
-4 Advanced Configuration
+4) Advanced Configuration
 
 	Above public class Recurring Add the following attribute
 
@@ -144,6 +144,58 @@
 		[DisplayName("Long Running")]
 		[DisplayName("Crashing Job")]
 
+	Start the App
+
+	Go to /Jobs
+
+	See the recurring jobs are there
+
+	Kick off the long running job
+
+	Allow long running to finish
+
+5)  AdHoc Jobs
+
+	In the Jobs folder, Create a class named AdHoc
+
+	Add the following code
+
+	[AutomaticRetry(Attempts = 3, OnAttemptsExceeded = AttemptsExceededAction.Delete)]
+    public class AdHoc
+    {
+        [DisplayName("Adhoc-Enqueued")]
+        public static void EnqueuedJob()
+        {
+            Thread.Sleep(120000);
+        }
+
+        [DisplayName("Adhoc-Delayed")]
+        public static void DelayedJob()
+        {
+            Thread.Sleep(120000);
+        }
+    }
+
+	Open the Home Controller
+
+	Add this code to either About or Contact
+
+		BackgroundJob.Enqueue(() => AdHoc.EnqueuedJob());
+
+        BackgroundJob.Schedule(() => AdHoc.EnqueuedJob(), TimeSpan.FromMinutes(1));
+
+
+		Start the App
+
+		Open another browser window with the same localhost:xxxx and go to  /Jobs
+
+		We should see our previous jobs in the dashboard
+
+		We still have our 2 recurring jobs,
+
+		No go to either about or contact
+
+		Go back to Hangfire, we should see 1 enqueued and 1 scheduled
 
 
 

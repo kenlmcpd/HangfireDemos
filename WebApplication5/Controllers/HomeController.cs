@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using Hangfire;
+using WebApplication5.Jobs;
 
 namespace WebApplication5.Controllers
 {
@@ -23,6 +25,11 @@ namespace WebApplication5.Controllers
         public ActionResult Contact()
         {
             ViewBag.Message = "Your contact page.";
+
+            BackgroundJob.Enqueue(() => AdHoc.EnqueuedJob());
+
+            BackgroundJob.Schedule(() => AdHoc.EnqueuedJob(), TimeSpan.FromMinutes(1));
+
 
             return View();
         }
