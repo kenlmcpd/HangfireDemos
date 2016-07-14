@@ -1,0 +1,155 @@
+
+1) Basic Setup
+	Create asp.net web application
+	Select MVC with Individual User Accounts Authorization (doing this so Entity Framework is added)
+	
+	Start the app and register a user so that the database is created
+
+	Add the following NuGet Packages
+		Hangfire
+		Hangfire.Core
+		Hangfire.SqlServer
+
+	Copy the information out of the Hangfire readme into Startup.cs
+
+		GlobalConfiguration.Configuration.UseSqlServerStorage("<name or connection string>");
+		app.UseHangfireDashboard();
+		app.UseHangfireServer();
+
+	Open the web config and get the name of the your database connection string
+
+	overwrite the <name or connection string> with it  ie. DefaultConnection
+
+	Start the app again
+
+	go to /hangfire
+
+	Explore the dashboard
+
+
+2) Add Authorization and a SQL database  
+
+	Create an empty database - you can do it in Visual Studio
+	Example:
+		Data Source=(localdb)\ProjectsV13;Initial Catalog=HangfireDemo;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=True;ApplicationIntent=ReadWrite;MultiSubnetFailover=False
+
+	Create asp.net web application
+		Select MVC with Individual User Accounts Authorization 
+	
+	Change the connect string to match the database you created
+	
+	Add the following NuGet Packages
+		Hangfire
+		Hangfire.Core
+ 		Hangfire.Dashboard.Authorization
+		Hangfire.SqlServer
+		
+	In the App_Start folder create a class named HangfireConfig.cs
+
+	Use the following the code:
+
+		public class HangfireConfig
+		{
+			public static void ConfigureHangfire(IAppBuilder app)
+			{
+				GlobalConfiguration.Configuration
+					.UseSqlServerStorage("DefaultConnection");
+
+				app.UseHangfireDashboard("/jobs", new DashboardOptions
+				{
+					AuthorizationFilters = new[]
+					{
+						new Hangfire.Dashboard.BasicAuthAuthorizationFilter(new Hangfire.Dashboard.BasicAuthAuthorizationFilterOptions
+						{
+							SslRedirect = false,
+							LoginCaseSensitive = true,
+							RequireSsl = false,
+							Users = new List<BasicAuthAuthorizationUser>()
+							{
+								new BasicAuthAuthorizationUser
+								{
+									Login = "HangfireUser",
+									PasswordClear = "HangfirePassword"
+								}
+							}
+						}
+					)}
+				});			
+				app.UseHangfireServer();
+			}
+		}
+
+	Add the following to Startup.cs
+		HangfireConfig.ConfigureHangfire(app);
+
+	Comment out 
+		// ConfigureAuth(app);
+
+	Start the App
+
+	Navigate to  /jobs - Notice we set this with app.UseHangfireDashboard("/jobs"
+
+	Log in with HangfireUser and HangfirePassword
+
+3 Add a Recurring Jobs
+
+	Create a folder name Jobs
+
+	Add a class to the folder named Recurring.cs
+
+	Use the following code:
+
+		public class Recurring
+		{
+			public static void LongRunningJob()
+			{
+				Thread.Sleep(120000);
+			}
+
+			public static void ThrowingJob()
+			{
+				Thread.Sleep(10000);
+				throw new ApplicationException("OMG");
+			}
+		}
+
+	At the bottom of the ConfigureHangfire Add this code
+
+		RecurringJob.AddOrUpdate("longrunning", () => Recurring.LongRunningJob(), Cron.Hourly);
+
+        RecurringJob.AddOrUpdate("crashing", () => Recurring.ThrowingJob(), Cron.Daily);
+
+	Start the App
+
+	Go to /Jobs
+
+	See the recurring jobs are there
+
+	Kick off the long running job
+
+	Wait a little bit Kick off the Crashing job
+
+	Allow long running to finish
+
+	After the crashing gets scheduled a couple times, delete it
+
+4 Advanced Configuration
+
+	Above public class Recurring Add the following attribute
+
+		[AutomaticRetry(Attempts = 3, OnAttemptsExceeded = AttemptsExceededAction.Delete)]
+
+	Above the jobs methods add following attributes
+		
+		[DisplayName("Long Running")]
+		[DisplayName("Crashing Job")]
+
+
+
+
+
+
+
+
+
+
