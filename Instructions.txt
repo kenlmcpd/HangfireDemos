@@ -3,7 +3,7 @@
 	Create asp.net web application
 	Select MVC with Individual User Accounts Authorization (doing this so Entity Framework is added)
 	
-	Start the app and register a user so that the database is created
+	Start the MVC App and register a user so that the database is created
 
 	Add the following NuGet Packages
 		Hangfire
@@ -20,7 +20,7 @@
 
 	overwrite the <name or connection string> with it  ie. DefaultConnection
 
-	Start the app again
+	Start the MVC App again
 
 	go to /hangfire
 
@@ -85,7 +85,7 @@
 	Comment out 
 		// ConfigureAuth(app);
 
-	Start the App
+	Start the MVC App
 
 	Navigate to  /jobs - Notice we set this with app.UseHangfireDashboard("/jobs"
 
@@ -119,7 +119,7 @@
 
         RecurringJob.AddOrUpdate("crashing", () => Recurring.ThrowingJob(), Cron.Daily);
 
-	Start the App
+	Start the MVC App
 
 	Go to /Jobs
 
@@ -144,7 +144,7 @@
 		[DisplayName("Long Running")]
 		[DisplayName("Crashing Job")]
 
-	Start the App
+	Start the MVC App
 
 	Go to /Jobs
 
@@ -185,7 +185,7 @@
         BackgroundJob.Schedule(() => AdHoc.EnqueuedJob(), TimeSpan.FromMinutes(1));
 
 
-		Start the App
+		Start the MVC App
 
 		Open another browser window with the same localhost:xxxx and go to  /Jobs
 
@@ -196,6 +196,14 @@
 		No go to either about or contact
 
 		Go back to Hangfire, we should see 1 enqueued and 1 scheduled
+
+6) Queues
+
+	Add the following above the Adhoc Class
+
+	 [Queue("Adhoc")]
+
+	 Start the MVC App
 
 
 
