@@ -8,7 +8,8 @@ namespace WebApplication4
     {
         public void Configuration(IAppBuilder app)
         {
-            ConfigureAuth(app);
+            //ConfigureAuth(app);
+            HangfireConfig.ConfigureHangfire(app);
         }
     }
 }
