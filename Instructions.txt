@@ -205,11 +205,12 @@
 
 	Change the Background code to 
 
-		var client = new BackgroundJobClient();
-        var state = new EnqueuedState("adhoc");
+		var jobClient = new BackgroundJobClient();
+        var enqueuedState = new EnqueuedState("adhoc");
+            
+        jobClient.Create(() => AdHoc.EnqueuedJob(), enqueuedState);
+        jobClient.Schedule(() => AdHoc.DelayedJob(), TimeSpan.FromMinutes(1));
 
-        client.Create(() => AdHoc.EnqueuedJob(), state);
-        client.Create(() => AdHoc.DelayedJob(), state);
             
 	 Start the MVC App
 
