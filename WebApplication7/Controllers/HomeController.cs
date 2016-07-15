@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using ConsoleApplication1;
 using Hangfire;
 using Hangfire.States;
-using WebApplication6.Jobs;
 
-namespace WebApplication6.Controllers
+namespace WebApplication7.Controllers
 {
     public class HomeController : Controller
     {
@@ -29,9 +29,10 @@ namespace WebApplication6.Controllers
 
             var jobClient = new BackgroundJobClient();
             var enqueuedState = new EnqueuedState("adhoc");
-
+            
             jobClient.Create(() => AdHoc.EnqueuedJob(), enqueuedState);
             jobClient.Schedule(() => AdHoc.DelayedJob(), TimeSpan.FromMinutes(1));
+
 
             return View();
         }

@@ -193,19 +193,118 @@
 
 		We still have our 2 recurring jobs,
 
-		No go to either about or contact
+		Go to either about or contact to enqueue the jobs..
 
 		Go back to Hangfire, we should see 1 enqueued and 1 scheduled
 
+		Wait for them to run
+
 6) Queues
+	
+	Open the Home Controller
 
-	Add the following above the Adhoc Class
+	Change the Background code to 
 
-	 [Queue("Adhoc")]
+		var client = new BackgroundJobClient();
+        var state = new EnqueuedState("adhoc");
 
+        client.Create(() => AdHoc.EnqueuedJob(), state);
+        client.Create(() => AdHoc.DelayedJob(), state);
+            
 	 Start the MVC App
 
+	 Go to either about or contact to enqueue the jobs..
 
+	 Enqueue the jobs - they never run; they just stay in queue
+
+7) Queues Part 2
+
+	Comment out the AdHoc class in the MVC application
+
+	 Create a ClassLibrary and also create a console application
+	 
+	 Add the following NuGet Packages to the console app
+		Microsoft.Owin
+		Microsoft.Owin.Host.SystemWeb
+		Microsoft.Owin.Hosting
+		Microsoft.Owin.Diagnostics
+		Microsoft.Owin.Host.HttpListener
+		Microsoft.Owin.SelfHost - The read me shows you what to do next
+
+	Note:
+		If you want to make this a windows service, install TopShelf
+
+	Add the following NuGet Packages to both the console and the ClassLibrary:
+		Hangfire
+		Hangfire.Core
+		Hangfire.SqlServer
+
+	In the Program Class the following code to the Main Method
+
+		static void Main(string[] args)
+        {
+            using (WebApp.Start<Startup>("http://localhost:12345"))
+            {
+                Console.ReadLine();
+            }
+        }
+
+	Copy your connection String out of the MVC Web.config, Add it to the App.Config
+
+	Add the System.Configuration Reference to the project
+
+	Create a class named Startup.cs
+
+	Add the following code
+
+		public class Startup
+		{
+			public BackgroundJobServer Server { get; set; }
+
+			public void Configuration(IAppBuilder app)
+			{
+				var storage = new SqlServerStorage(ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString);
+				storage.GetMonitoringApi();
+
+				var options = new BackgroundJobServerOptions
+				{
+					Queues = new[] { "adhoc" }
+				};
+
+				Server = new BackgroundJobServer(options, storage);
+			}
+		}
+
+		Create a class named AdHoc
+
+		Add the following code
+
+	[Queue("Adhoc")]
+    [AutomaticRetry(Attempts = 3, OnAttemptsExceeded = AttemptsExceededAction.Delete)]
+    public class AdHoc
+    {
+        [DisplayName("Adhoc-Enqueued")]
+        public static void EnqueuedJob()
+        {
+            Console.WriteLine("Starting Long Running Job in adhoc queue");
+            Thread.Sleep(120000);
+        }
+
+        [DisplayName("Adhoc-Delayed")]
+        public static void DelayedJob()
+        {
+            Console.WriteLine("Starting Delayed Running Job in adhoc queue");
+            Thread.Sleep(120000);
+        }
+    }
+
+	Add a reference to the ClassLibrary in both the MVC app and the Console app.
+	
+	Set Both the MVC project and the console projct to run
+
+	Go to /jobs/servers
+
+	Notice the adhoc queue now
 
 
 
